@@ -1,0 +1,40 @@
+- hosts: localhost
+  gather_facts: False
+  vars:
+    vpc_id: your_vpc_id # Replace with your VPC ID
+    ami_id: ami-07d9b9ddc6cd8dd30 # Ubuntu 22.04 Jammy
+    subnet_id: your_subnet_id # Replace with your subnet ID
+  tasks:
+    - name: Create security group
+      amazon.aws.ec2_group:
+        name: allow_ssh_http_https
+        description: Security Group for webserver
+        rules:
+          - proto: tcp
+            ports:
+              - 22  # SSH
+              - 80  # HTTP
+              - 443 # HTTPS
+            cidr_ip: 0.0.0.0/0  # Allow from anywhere
+        vpc_id: "{{ vpc_id }}"
+
+    - name: Launch EC2 instance
+      amazon.aws.ec2_instance:
+        name: vm
+        key_name: "{{ ssh_key }}"
+        instance_type: t2.micro
+        region: us-east-1
+        image_id: "{{ ami_id }}"
+        wait: yes
+        security_group: allow_ssh_http_https
+        vpc_subnet_id: "{{ subnet_id }}"
+        network:
+          assign_public_ip: yes
+        volumes:
+          - device_name: /dev/sda1
+            ebs:
+              volume_size: 32
+              delete_on_termination: true
+        tags:
+          Name: vm
+      register: ec2

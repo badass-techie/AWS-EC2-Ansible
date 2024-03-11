@@ -1,0 +1,17 @@
+- hosts: localhost
+  gather_facts: False
+  vars:
+    instance_id: i-0a74de599a549c24d # Replace with your instance ID
+    security_group_name: my_security_group
+  tasks:
+    - name: Terminate EC2 instance
+      amazon.aws.ec2_instance:
+        instance_ids: "{{ instance_id }}"
+        region: us-east-1
+        state: absent
+        wait: yes
+
+    - name: Delete security group
+      amazon.aws.ec2_group:
+        name: "{{ security_group_name }}"
+        state: absent
